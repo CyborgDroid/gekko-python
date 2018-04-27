@@ -4,4 +4,4 @@
 <b>Requirements:</b> Python3. pip install: click, PrettyTable.
 
 SEE WIKI FOR USAGE
-https://github.com/CyborgDroid/gekko-python/wiki
+https://github.com/CyborgDroid/gekko-python/wiki/Controlling-Gekko-Bots
