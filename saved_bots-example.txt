@@ -1,0 +1,25 @@
+[
+    {
+        "asset": "BNB",
+        "currency": "BTC",
+        "exchange": "binance",
+        "type": "watcher"
+    },
+    {
+        "asset": "BNB",
+        "candleSize": 30,
+        "currency": "BTC",
+        "exchange": "binance",
+        "historySize": 10,
+        "strat_name": "RSI",
+        "strat_settings": {
+            "interval": 10,
+            "thresholds": {
+                "high": 90,
+                "low": 10,
+                "persistence": 0
+            }
+        },
+        "type": "tradebot"
+    }
+]
