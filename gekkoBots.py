@@ -202,7 +202,7 @@ def init_Gekko(server='localhost' ,kill=False, start=False, save=False, import_a
     if server == 'VPS' or server == 'localhost':
         srv = gekkoServer(server)
     else:
-        srv = gekkoServer('VPS')
+        srv = gekkoServer('localhost')
     if kill:
         srv.kill_gekko(kill)
     if import_all:
