@@ -8,8 +8,8 @@ from short_utm import UniversalTableMethods as utm
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class gekkoServer(object):
-    def __init__(self):
-        self.get_server_info()
+    def __init__(self, server):
+        self.get_server_info(server)
         self.gekkos = self.get_gekkos()
         self.scansets = []
 
@@ -67,7 +67,7 @@ class gekkoServer(object):
             f.close()
         return 'saved_bots-' + gekko_list_id + '.txt'
 
-    def get_server_info(self):
+    def get_server_info(self, server):
         # ########################
         # server_credentials_api.json file structure: 
         # (for protecting your website with login credentials)
@@ -77,13 +77,13 @@ class gekkoServer(object):
         #   "password" : "mypassword"
         # }]
         ############################
-        #UNCOMMENT THE FOLLOWING 4 LINES TO RUN ON A VPS, (see above instructions too)
-        #data = json.load(open('server_credentials_api.json', 'r'))
-        #self.api_url = data[0]['server_addr']
-        #self.u_name = data[0]['username']
-        #self.p_word = data[0]['password']
-        #UNCOMMENT TO RUN LOCALLY:
-        self.api_url = 'http://localhost:3000/api/'
+        if server == 'VPS':
+            data = json.load(open('server_credentials_api.json', 'r'))
+            self.api_url = data[0]['server_addr']
+            self.u_name = data[0]['username']
+            self.p_word = data[0]['password']
+        elif server == 'localhost':
+            self.api_url = 'http://localhost:3000/api/'
 
     def api_calls(self, type='get', call='gekkos', data={}):
         data = json.dumps(data)
@@ -193,15 +193,17 @@ class gekkoServer(object):
             print('EXCEPTION:', e)
 
 @click.command()
-@click.option('--server', help='local or VPS')
+@click.option('--server', help='"localhost" or "VPS"')
 @click.option('--kill', help='id of gekko to kill, or "all"')
 @click.option('--start', help='"filename.txt" starts all saved gekkos in file. "all" starts watchers for imports ("all" NOT WORKING).')
 @click.option('--save', help='Save current gekkos for later. Specify gekko file identifier to distinguish from other saves.')
 @click.option('--import_all', help='set to "true" to import all missing data in databases')
 def init_Gekko(server='local' ,kill=False, start=False, save=False, import_all=False):
-    srv = gekkoServer()
-    if server == 'VPS':
-        print('use VPS')
+    
+    if server == 'VPS' or server == 'localhost':
+        srv = gekkoServer(server)
+    else:
+        srv = gekkoServer('VPS')
     if kill:
         srv.kill_gekko(kill)
     if import_all:
