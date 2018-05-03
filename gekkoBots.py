@@ -72,8 +72,8 @@ class gekkoServer(object):
         # server_credentials_api.json file structure: 
         # (for protecting your website with login credentials)
         # [{
-        #   "server_addr" : "https://123.456.789/api/"
-        #   "username" : "myuser"
+        #   "server_addr" : "https://123.456.789/api/",
+        #   "username" : "myuser",
         #   "password" : "mypassword"
         # }]
         ############################
@@ -198,8 +198,7 @@ class gekkoServer(object):
 @click.option('--start', help='"filename.txt" starts all saved gekkos in file. "all" starts watchers for imports ("all" NOT WORKING).')
 @click.option('--save', help='Save current gekkos for later. Specify gekko file identifier to distinguish from other saves.')
 @click.option('--import_all', help='set to "true" to import all missing data in databases')
-def init_Gekko(server='local' ,kill=False, start=False, save=False, import_all=False):
-    
+def init_Gekko(server='localhost' ,kill=False, start=False, save=False, import_all=False):
     if server == 'VPS' or server == 'localhost':
         srv = gekkoServer(server)
     else:
