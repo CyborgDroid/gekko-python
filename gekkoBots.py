@@ -51,6 +51,8 @@ class gekkoServer(object):
             [self.start_watcher(x['exchange'], x['currency'], x['asset']) for x in d if x['type'] == 'watcher']
             #start all tradebots now
             [self.start_trader(x['exchange'], x['currency'], x['asset'], x['candleSize'], x['historySize'], x['strat_name'], x['strat_settings']) for x in d if x['type'] == 'tradebot']
+            #start all paper traders
+            [self.start_papertrader(x['exchange'], x['currency'], x['asset'], x['candleSize'], x['historySize'], x['strat_name'], x['strat_settings']) for x in d if x['type'] == 'paper trader']
 
 
     def save_gekkos(self, gekko_list_id):
@@ -60,8 +62,13 @@ class gekkoServer(object):
             {'type': w['trader'], 'exchange': w['watch']['exchange'], 'asset': w['watch']['asset'], 'currency': w['watch']['currency'],
             'strat_name': w['strat']['name'], 'candleSize': w['strat']['tradingAdvisor']['candleSize'], 'historySize': w['strat']['tradingAdvisor']['historySize'],
             'strat_settings': w['strat']['params']} for w in self.gekkos if w['type'] == 'leech' and w['trader'] == 'tradebot']
+        papertraders = [
+            {'type': w['paper trader'], 'exchange': w['watch']['exchange'], 'asset': w['watch']['asset'], 'currency': w['watch']['currency'],
+            'strat_name': w['strat']['name'], 'candleSize': w['strat']['tradingAdvisor']['candleSize'], 'historySize': w['strat']['tradingAdvisor']['historySize'],
+            'strat_settings': w['strat']['params']} for w in self.gekkos if w['type'] == 'leech' and w['trader'] == 'paper trader']
         # ****** ADD PAPER TRADERS HERE TO SAVE
         watchers.extend(tradebots)
+        watchers.extend(papertraders)
         with open('saved_bots-' + gekko_list_id + '.txt', 'wb') as f:
             json.dump(watchers, codecs.getwriter('utf-8')(f), sort_keys = True, indent = 4, ensure_ascii=False)
             f.close()
@@ -99,7 +106,7 @@ class gekkoServer(object):
         elif type == 'post':
             if 'localhost' in self.api_url:
                 response = requests.post(self.api_url + call, data=data, headers=header)
-                print(response.request.body)
+                #print(response.request.body)
             else:
                 response = requests.post(self.api_url + call, data=data, headers=header, verify=False, auth=(self.u_name, self.p_word))
         return response
@@ -130,6 +137,34 @@ class gekkoServer(object):
     def start_all(self):
         self.scansets = self.get_scansets()
         [self.start_watcher(i['exchange'], i['currency'], i['asset']) for i in self.scansets]
+
+    def start_papertrader(self, exchange, currency, asset, candleSize, historySize, strat_name, strat_settings):
+        #create conf file
+        conf= {"market":{"type":"leech"},
+            "mode":"realtime",
+            "watch":{
+                "exchange":exchange,
+                "currency":currency,
+                "asset":asset
+            },
+            "tradingAdvisor":{
+                "enabled":True,
+                "method":strat_name,
+                "candleSize":candleSize,
+                "historySize":historySize
+            },
+            strat_name: strat_settings,
+            "candleWriter":{"enabled":True,"adapter":"sqlite"},
+            "type":"paper trader",
+            "performanceAnalyzer":{"riskFreeReturn":2,"enabled":True},
+            "paperTrader":{"feeMaker":0.05,"feeTaker":0.05,"feeUsing":"maker","slippage":0,"simulationBalance":{"asset":0,"currency":1},"reportRoundtrips":True,"enabled":True}}
+        #check if watcher already exists:
+        # flattened_gekkos = [utm.flatten_json(x) for x in self.gekkos]
+        # matching_leeches = [w for w in flattened_gekkos if w['type'] == 'leech' and w['watch.exchange'] == exchange and w['watch.currency'] == currency and w['watch.asset'] == asset]
+        # if matching_leeches:
+        #     utm.print_lod('Paper trader or trader already active: ', utm.filter_lod_keys(['trader', 'type', 'watch.exchange', 'watch.currency', 'watch.asset', 'id'],matching_leeches))
+        # else:
+        self.start_config(conf)
 
     def start_watcher(self, exchange, currency, asset):
         conf = {
@@ -172,11 +207,11 @@ class gekkoServer(object):
             "type":"tradebot",
             "performanceAnalyzer":{"riskFreeReturn":2,"enabled":True},
             "trader":{"enabled":True},"valid":True}
-        #check if watcher already exists:
+        #check if trader already exists:
         flattened_gekkos = [utm.flatten_json(x) for x in self.gekkos]
         matching_leeches = [w for w in flattened_gekkos if w['type'] == 'leech' and w['watch.exchange'] == exchange and w['watch.currency'] == currency and w['watch.asset'] == asset]
         if matching_leeches:
-            utm.print_lod('Trader already active: ', utm.filter_lod_keys(['trader', 'type', 'watch.exchange', 'watch.currency', 'watch.asset', 'id'],matching_leeches))
+            utm.print_lod('Trader or paper trader already active: ', utm.filter_lod_keys(['trader', 'type', 'watch.exchange', 'watch.currency', 'watch.asset', 'id'],matching_leeches))
         else:
             self.start_config(conf)
     
